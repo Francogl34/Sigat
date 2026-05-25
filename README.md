@@ -48,3 +48,5 @@ GET /api/zones          → zonas de riesgo
 GET /api/history        → historial horario
 GET /api/stats          → estadísticas generales
 GET /api/sensors/db     → lecturas históricas desde DB
+
+Version 0.7
