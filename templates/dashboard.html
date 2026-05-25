@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGAT — Sistema de Alerta Temprana de Incendios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="fire-icon">🔥</div>
+    <div>
+      <div class="logo-text">SIGAT</div>
+      <div class="logo-sub">v1.0 · UNIFRANZ</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-view="dashboard">
+      <span class="nav-icon">◈</span> Dashboard
+    </a>
+    <a href="#" class="nav-item" data-view="sensors">
+      <span class="nav-icon">◉</span> Sensores
+    </a>
+    <a href="#" class="nav-item" data-view="alerts">
+      <span class="nav-icon">▲</span> Alertas
+    </a>
+    <a href="#" class="nav-item" data-view="prediction">
+      <span class="nav-icon">◈</span> Predicción
+    </a>
+    <a href="#" class="nav-item" data-view="zones">
+      <span class="nav-icon">⬡</span> Zonas
+    </a>
+    <a href="#" class="nav-item" data-view="history">
+      <span class="nav-icon">≋</span> Historial
+    </a>
+  </nav>
+
+  <div class="sidebar-status">
+    <div class="status-dot active"></div>
+    <span>Sistema activo</span>
+    <span id="sidebar-time" class="mono">--:--:--</span>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-title" id="view-title">Panel de Control</div>
+    <div class="topbar-right">
+      <div class="location-tag">📍 Cochabamba, Bolivia</div>
+      <div class="refresh-btn" id="refresh-btn">↻ Actualizar</div>
+      <div class="alert-badge" id="alert-count">0 alertas</div>
+    </div>
+  </header>
+
+  <!-- ===== VIEW: DASHBOARD ===== -->
+  <div id="view-dashboard" class="view active">
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card critical-card">
+        <div class="stat-label">Zonas Críticas</div>
+        <div class="stat-value" id="stat-critical">—</div>
+        <div class="stat-sub">sensores activos</div>
+      </div>
+      <div class="stat-card temp-card">
+        <div class="stat-label">Temp. Promedio</div>
+        <div class="stat-value" id="stat-temp">—</div>
+        <div class="stat-sub">°C en todas las zonas</div>
+      </div>
+      <div class="stat-card hum-card">
+        <div class="stat-label">Humedad Prom.</div>
+        <div class="stat-value" id="stat-hum">—</div>
+        <div class="stat-sub">% relativa</div>
+      </div>
+      <div class="stat-card smoke-card">
+        <div class="stat-label">Humo Prom.</div>
+        <div class="stat-value" id="stat-smoke">—</div>
+        <div class="stat-sub">PPM detectados</div>
+      </div>
+      <div class="stat-card sensor-card">
+        <div class="stat-label">Sensores Activos</div>
+        <div class="stat-value" id="stat-sensors">—</div>
+        <div class="stat-sub">en línea / 6 total</div>
+      </div>
+      <div class="stat-card alerts-card">
+        <div class="stat-label">Alertas Hoy</div>
+        <div class="stat-value" id="stat-alerts-today">—</div>
+        <div class="stat-sub">generadas hoy</div>
+      </div>
+    </div>
+
+    <!-- MAP + ALERTS PANEL -->
+    <div class="dashboard-grid">
+      <div class="map-panel card">
+        <div class="card-header">
+          <span>🗺️ Mapa de Riesgo — Parque Tunari & Cochabamba</span>
+          <span class="card-badge">TIEMPO REAL</span>
+        </div>
+        <div class="map-container" id="risk-map">
+          <svg viewBox="0 0 600 380" class="map-svg">
+            <!-- Background terrain -->
+            <defs>
+              <radialGradient id="terrainGrad" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#1a2e1a"/>
+                <stop offset="100%" stop-color="#0d1a0d"/>
+              </radialGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <rect width="600" height="380" fill="url(#terrainGrad)" rx="8"/>
+            <!-- Grid lines -->
+            <g stroke="#1e3a1e" stroke-width="0.5" opacity="0.5">
+              <line x1="0" y1="76" x2="600" y2="76"/>
+              <line x1="0" y1="152" x2="600" y2="152"/>
+              <line x1="0" y1="228" x2="600" y2="228"/>
+              <line x1="0" y1="304" x2="600" y2="304"/>
+              <line x1="120" y1="0" x2="120" y2="380"/>
+              <line x1="240" y1="0" x2="240" y2="380"/>
+              <line x1="360" y1="0" x2="360" y2="380"/>
+              <line x1="480" y1="0" x2="480" y2="380"/>
+            </g>
+            <!-- Terrain shapes -->
+            <path d="M 80 100 Q 200 60 320 80 Q 420 55 520 90 L 540 200 Q 400 220 280 200 Q 150 230 80 210 Z" fill="#0f2a10" opacity="0.8"/>
+            <path d="M 100 150 Q 250 120 380 140 Q 460 125 540 150 L 520 260 Q 360 280 220 260 Q 130 280 100 250 Z" fill="#162a10" opacity="0.6"/>
+            <!-- City marker -->
+            <circle cx="300" cy="300" r="18" fill="#ffffff10" stroke="#ffffff30" stroke-width="1"/>
+            <circle cx="300" cy="300" r="4" fill="#60a5fa"/>
+            <text x="315" y="305" fill="#93c5fd" font-size="11" font-family="Space Mono">Cochabamba</text>
+            <!-- Sensor nodes -->
+            <g id="map-sensors"></g>
+            <!-- Legend -->
+            <g transform="translate(16,320)">
+              <rect width="160" height="50" fill="#00000060" rx="6"/>
+              <circle cx="16" cy="12" r="5" fill="#FF2D2D"/>
+              <text x="26" y="16" fill="#ccc" font-size="9" font-family="Space Mono">CRÍTICO</text>
+              <circle cx="80" cy="12" r="5" fill="#FF7A00"/>
+              <text x="90" y="16" fill="#ccc" font-size="9" font-family="Space Mono">ALTO</text>
+              <circle cx="16" cy="34" r="5" fill="#FFD600"/>
+              <text x="26" y="38" fill="#ccc" font-size="9" font-family="Space Mono">MEDIO</text>
+              <circle cx="80" cy="34" r="5" fill="#00C853"/>
+              <text x="90" y="38" fill="#ccc" font-size="9" font-family="Space Mono">BAJO</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="alerts-panel card">
+        <div class="card-header">
+          <span>⚡ Alertas Activas</span>
+          <span class="card-badge pulse" id="alerts-live-badge">EN VIVO</span>
+        </div>
+        <div id="alerts-list" class="alerts-list">
+          <div class="loading">Cargando alertas...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-row">
+      <div class="card chart-card">
+        <div class="card-header"><span>🌡️ Temperatura por Zona (°C)</span></div>
+        <canvas id="temp-chart" height="180"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="card-header"><span>💧 Humedad Relativa (%)</span></div>
+        <canvas id="hum-chart" height="180"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="card-header"><span>💨 Humo PPM por Zona</span></div>
+        <canvas id="smoke-chart" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: SENSORS ===== -->
+  <div id="view-sensors" class="view">
+    <div class="section-header">
+      <h2>Red de Sensores IoT — Protocolo LoRa + Mesh</h2>
+      <p>6 nodos activos distribuidos en zonas de riesgo forestal</p>
+    </div>
+    <div id="sensor-cards" class="sensor-grid"></div>
+  </div>
+
+  <!-- ===== VIEW: ALERTS ===== -->
+  <div id="view-alerts" class="view">
+    <div class="section-header">
+      <h2>Centro de Alertas Tempranas</h2>
+      <p>Evaluación automática basada en umbrales configurables</p>
+    </div>
+    <div class="alerts-filter">
+      <button class="filter-btn active" data-filter="ALL">Todas</button>
+      <button class="filter-btn" data-filter="CRÍTICO">Crítico</button>
+      <button class="filter-btn" data-filter="ALTO">Alto</button>
+      <button class="filter-btn" data-filter="MEDIO">Medio</button>
+      <button class="filter-btn" data-filter="BAJO">Bajo</button>
+    </div>
+    <div id="full-alerts-list" class="full-alerts-grid"></div>
+  </div>
+
+  <!-- ===== VIEW: PREDICTION ===== -->
+  <div id="view-prediction" class="view">
+    <div class="section-header">
+      <h2>Módulo de Predicción — SIGAT-Heuristic v1.0</h2>
+      <p>Análisis predictivo basado en variables ambientales multi-sensor</p>
+    </div>
+    <div class="prediction-grid">
+      <div class="card forecast-chart-card">
+        <div class="card-header"><span>📈 Probabilidad de Incendio — Próximas 24h</span></div>
+        <canvas id="forecast-chart" height="220"></canvas>
+      </div>
+      <div class="card" style="padding:24px">
+        <div class="card-header" style="margin-bottom:16px"><span>🧠 Modelo Predictivo</span></div>
+        <div id="model-info" class="model-info"></div>
+      </div>
+    </div>
+    <div id="zone-forecasts" class="zone-forecast-grid"></div>
+  </div>
+
+  <!-- ===== VIEW: ZONES ===== -->
+  <div id="view-zones" class="view">
+    <div class="section-header">
+      <h2>Gestión de Zonas Forestales</h2>
+      <p>Estado actual de riesgo por zona de monitoreo</p>
+    </div>
+    <div id="zone-cards" class="zone-grid"></div>
+  </div>
+
+  <!-- ===== VIEW: HISTORY ===== -->
+  <div id="view-history" class="view">
+    <div class="section-header">
+      <h2>Historial de las Últimas 24 Horas</h2>
+      <p>Registro de variables ambientales y eventos detectados</p>
+    </div>
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <div class="card-header" style="margin-bottom:16px"><span>📊 Tendencia Histórica</span></div>
+      <canvas id="history-chart" height="200"></canvas>
+    </div>
+    <div id="history-table-wrap" class="card" style="padding:24px">
+      <div class="card-header" style="margin-bottom:16px"><span>📋 Tabla de Registros</span></div>
+      <div id="history-table"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- NOTIFICATION TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
